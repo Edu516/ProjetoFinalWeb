@@ -1,0 +1,219 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema classroom
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema classroom
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `classroom` DEFAULT CHARACTER SET utf8 ;
+USE `classroom` ;
+
+-- -----------------------------------------------------
+-- Table `classroom`.`pessoa`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`pessoa` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(45) NOT NULL,
+  `sobrenome` VARCHAR(45) NOT NULL,
+  `sexo` INT NULL,
+  `login` VARCHAR(40) NOT NULL,
+  `senha` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `login_UNIQUE` (`login` ASC))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`professor`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`professor` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `pessoa_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_professor_pessoa_idx` (`pessoa_id` ASC),
+  CONSTRAINT `fk_professor_pessoa`
+    FOREIGN KEY (`pessoa_id`)
+    REFERENCES `classroom`.`pessoa` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`comunicado`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`comunicado` (
+  `idcomunicado` INT NOT NULL AUTO_INCREMENT,
+  `descricao` VARCHAR(600) NOT NULL,
+  `professor_id` INT NOT NULL,
+  PRIMARY KEY (`idcomunicado`),
+  INDEX `fk_comunicado_professor1_idx` (`professor_id` ASC) ,
+  CONSTRAINT `fk_comunicado_professor1`
+    FOREIGN KEY (`professor_id`)
+    REFERENCES `classroom`.`professor` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`turma`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`turma` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `descricao` VARCHAR(45) NOT NULL,
+  `comunicado_idcomunicado` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_turma_comunicado1_idx` (`comunicado_idcomunicado` ASC),
+  CONSTRAINT `fk_turma_comunicado1`
+    FOREIGN KEY (`comunicado_idcomunicado`)
+    REFERENCES `classroom`.`comunicado` (`idcomunicado`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`aluno`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`aluno` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `pessoa_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_aluno_pessoa1_idx` (`pessoa_id` ASC),
+  CONSTRAINT `fk_aluno_pessoa1`
+    FOREIGN KEY (`pessoa_id`)
+    REFERENCES `classroom`.`pessoa` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`atividade`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`atividade` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `descricao` VARCHAR(800) NOT NULL,
+  `material` VARCHAR(45) NULL,
+  `arquivo` VARCHAR(45) NULL,
+  `turma_id` INT NOT NULL,
+  `aluno_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_atividade_turma1_idx` (`turma_id` ASC),
+  INDEX `fk_atividade_aluno1_idx` (`aluno_id` ASC) ,
+  CONSTRAINT `fk_atividade_turma1`
+    FOREIGN KEY (`turma_id`)
+    REFERENCES `classroom`.`turma` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_atividade_aluno1`
+    FOREIGN KEY (`aluno_id`)
+    REFERENCES `classroom`.`aluno` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`admin`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`admin` (
+  `idadmin` INT NOT NULL AUTO_INCREMENT,
+  `pessoa_id` INT NOT NULL,
+  PRIMARY KEY (`idadmin`),
+  INDEX `fk_admin_pessoa1_idx` (`pessoa_id` ASC) ,
+  CONSTRAINT `fk_admin_pessoa1`
+    FOREIGN KEY (`pessoa_id`)
+    REFERENCES `classroom`.`pessoa` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`especialidade`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`especialidade` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `descricao` VARCHAR(45) NOT NULL,
+  `nivel` INT(8) NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`professor_has_especialidade`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`professor_has_especialidade` (
+  `professor_id` INT NOT NULL,
+  `especialidade_id` INT NOT NULL,
+  PRIMARY KEY (`professor_id`, `especialidade_id`),
+  INDEX `fk_professor_has_especialidade_especialidade1_idx` (`especialidade_id` ASC),
+  INDEX `fk_professor_has_especialidade_professor1_idx` (`professor_id` ASC),
+  CONSTRAINT `fk_professor_has_especialidade_professor1`
+    FOREIGN KEY (`professor_id`)
+    REFERENCES `classroom`.`professor` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_professor_has_especialidade_especialidade1`
+    FOREIGN KEY (`especialidade_id`)
+    REFERENCES `classroom`.`especialidade` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`turma_has_aluno`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`turma_has_aluno` (
+  `turma_id` INT NOT NULL,
+  `aluno_id` INT NOT NULL,
+  PRIMARY KEY (`turma_id`, `aluno_id`),
+  INDEX `fk_turma_has_aluno_aluno1_idx` (`aluno_id` ASC) ,
+  INDEX `fk_turma_has_aluno_turma1_idx` (`turma_id` ASC) ,
+  CONSTRAINT `fk_turma_has_aluno_turma1`
+    FOREIGN KEY (`turma_id`)
+    REFERENCES `classroom`.`turma` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_turma_has_aluno_aluno1`
+    FOREIGN KEY (`aluno_id`)
+    REFERENCES `classroom`.`aluno` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `classroom`.`professor_has_turma`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `classroom`.`professor_has_turma` (
+  `professor_id` INT NOT NULL,
+  `turma_id` INT NOT NULL,
+  PRIMARY KEY (`professor_id`, `turma_id`),
+  INDEX `fk_professor_has_turma_turma1_idx` (`turma_id` ASC) ,
+  INDEX `fk_professor_has_turma_professor1_idx` (`professor_id` ASC) ,
+  CONSTRAINT `fk_professor_has_turma_professor1`
+    FOREIGN KEY (`professor_id`)
+    REFERENCES `classroom`.`professor` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_professor_has_turma_turma1`
+    FOREIGN KEY (`turma_id`)
+    REFERENCES `classroom`.`turma` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
